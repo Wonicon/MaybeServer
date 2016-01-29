@@ -1,74 +1,24 @@
-#include "http.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
-
-size_t tok(char *dst, size_t dst_size, const char *src, const char **next, const char *delim)
+char *parse_url(const char *header)
 {
-    if (*src == '\0') {
-        return 0;
+    // Get url from 'GET */* HTTP/1.1\r\n...'
+    char *beg = strstr(header, " ") + 1;
+    char *end = strstr(beg, " ");
+
+    // Abort '?*' in url
+    char *sep = strstr(beg, "?");
+    if (sep != NULL && sep < end) {
+        end = sep;
     }
 
-    char *delim_pos = strstr(src, delim);
-    size_t tok_size = (delim_pos == NULL) ? strlen(src) : (delim_pos - src);
-    size_t size = min(dst_size - 1, tok_size);
+    size_t len = end - beg;
+    char *url = malloc(len + 1);
+    strncpy(url, beg, len);
+    url[len] = '\0';
 
-    memset(dst, '\0', dst_size);
-    strncpy(dst, src, size);
-
-    if (next != NULL) {
-        if (delim_pos == NULL) {
-            *next = src + strlen(src);
-        }
-        else {
-            *next = delim_pos + strlen(delim);
-        }
-    }
-
-    return size;
-}
-
-struct HttpHeader *parse_httpheader(const char *text)
-{
-
-    char token[256];
-    char line[1024];
-    const char *tail = line;
-
-    struct HttpHeader *hdr = malloc(sizeof(*hdr));
-
-    tok(line, sizeof(line), text, &text, "\r\n");
-
-    // Get method
-    tok(token, sizeof(token), tail, &tail, " ");
-
-    if (!strcmp(token, "GET")) {
-        hdr->method = GET;
-    }
-
-    // Get filename
-    tok(token, sizeof(token), tail, &tail, " ");
-
-    // Dup the string
-    hdr->requested_file = malloc(strlen(token) + 1);
-    strcpy(hdr->requested_file, token);
-
-    return hdr;
-}
-
-void free_httpheader(struct HttpHeader *hdr)
-{
-    free(hdr->requested_file);
-    free(hdr);
-}
-
-size_t response_header(char *dst, int status_code, char *body, size_t body_size)
-{
-    extern const char *serv_name;
-    size_t n = sprintf(dst, "HTTP/1.1 %d\nServer:%s\n\n", status_code, serv_name);
-    memcpy(dst + n, body, body_size);
-    return n + body_size;
+    return url;
 }
 
