@@ -10,7 +10,6 @@
 #include "debug.h"
 #include "http.h"
 
-const char *serv_name = NULL;
 const char *root_path = NULL;
 
 int init_server(short portno); 
@@ -19,15 +18,14 @@ void response(int connect_sock);
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: [prog] port-no server-name root-path\n");
+    if (argc < 2) {
+        fprintf(stderr, "Usage: [prog] root-path port-number\n");
         exit(1);
     }
 
-    serv_name = argv[2];
-    root_path = argv[3];
+    root_path = argv[1];
 
-    int sockfd = init_server( (short) atoi(argv[1]) );
+    int sockfd = init_server( (short) atoi(argv[2]) );
 
     struct sockaddr_in cli_addr;
     unsigned int cli_len = sizeof(cli_addr);
