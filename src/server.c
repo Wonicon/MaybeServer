@@ -85,6 +85,9 @@ void response(int sockfd)
     char *url = parse_url(buffer);
     strcpy(buffer, root_path);
     strcat(buffer, url);
+    if (!strcmp(url, "/")) {
+        strcat(buffer, "index.html");
+    }
     free(url);
 
     int fd = open(buffer, O_RDONLY);
