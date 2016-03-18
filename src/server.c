@@ -33,11 +33,12 @@ int main(int argc, char *argv[])
     for (;;) {
         int connect_sock = accept(sockfd, (struct sockaddr *)&cli_addr, &cli_len);
         if (fork() == 0) {
+            close(sockfd);
             response(connect_sock);
-            shutdown(connect_sock, SHUT_RDWR);
             close(connect_sock);
             exit(0);
         }
+        close(connect_sock);
     }
 
     close(sockfd);
